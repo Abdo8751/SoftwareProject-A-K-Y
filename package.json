@@ -1,0 +1,15 @@
+{
+  "name": "softwareproject-a-k-y",
+  "version": "1.0.0",
+  "description": "Online Event Ticketing System for team number 61 GIU yousef,khaled , Abdelrahman",
+  "main": "User.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "mongoose": "^8.12.1"
+  }
+}
