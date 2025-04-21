@@ -1,9 +1,11 @@
 const Event = require('../models/Event');
 const Booking = require('../models/Booking');
 
-// @desc    Get all events
-// @route   GET /api/v1/events
-// @access  Public
+// This handles creating a new event
+// Might need to validate date and time format later
+
+// Double-check if organizer ID is being saved properly
+
 exports.getEvents = async (req, res, next) => {
   try {
     const events = await Event.find({ status: 'approved' }).populate('organizer', 'name email');
