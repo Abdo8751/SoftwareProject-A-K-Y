@@ -1,4 +1,8 @@
 const express = require('express');
+// User-related routes will be here yes
+// Added auth middleware to protect some of them
+// Might wanna double-check if admin access is working properly
+
 const {
   getUsers,
   getUser,

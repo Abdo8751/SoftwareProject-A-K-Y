@@ -12,9 +12,9 @@ exports.getUsers = async (req, res, next) => {
   }
 };
 
-// @desc    Get single user
-// @route   GET /api/v1/users/:id
-// @access  Private (Admin)
+// Just grabbing all users here – might need to limit later if it gets heavy
+// Not sure if we need extra filtering, let's see how front-end handles it
+
 exports.getUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.id);

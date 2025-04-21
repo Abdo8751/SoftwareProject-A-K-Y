@@ -1,5 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+// This checks if the user is logged in before allowing access
+// If stuff breaks here, it’s probably the token
 
 // Protect routes
 exports.protect = async (req, res, next) => {
