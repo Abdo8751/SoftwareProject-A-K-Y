@@ -32,5 +32,9 @@ router.get('/organizer/events/analytics', authorize('organizer'), getEventAnalyt
 
 // ✅ Admin route
 router.put('/:id/status', authorize('admin'), updateEventStatus);
+// Routes for all event-related operations
+// Protected routes below require the user to be an organizer
+
+
 
 module.exports = router;
