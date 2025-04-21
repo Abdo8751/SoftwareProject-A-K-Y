@@ -20,43 +20,43 @@ exports.register = async (req, res, next) => {
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
   }
+
+  const existing = await User.findOne({ email });
+  if (existing) {
+  return res.status(400).json({ success: false, message: 'Email already exists' });
+}
 };
 
 // @desc    Login user
 // @route   POST /api/v1/login
 // @access  Public
 exports.login = async (req, res, next) => {
-  try {
-    const { email, password } = req.body;
-    
-    if (!email || !password) {
-      return res.status(400).json({ success: false, message: 'Please provide an email and password' });
-    }
-    
-    const user = await User.findOne({ email }).select('+password');
-    
-    if (!user) {
-      return res.status(401).json({ success: false, message: 'Invalid credentials' });
-    }
-    
-    const isMatch = await user.matchPassword(password);
-    
-    if (!isMatch) {
-      return res.status(401).json({ success: false, message: 'Invalid credentials' });
-    }
-    
-    sendTokenResponse(user, 200, res);
-  } catch (err) {
-    res.status(400).json({ success: false, message: err.message });
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ success: false, message: 'Please provide an email and password' });
   }
+
+  const user = await User.findOne({ email }).select('+password');
+  if (!user) {
+    return res.status(401).json({ success: false, message: 'Invalid credentials' });
+  }
+
+  const isMatch = await user.matchPassword(password);
+  if (!isMatch) {
+    return res.status(401).json({ success: false, message: 'Invalid credentials' });
+  }
+
+  sendTokenResponse(user, 200, res);
 };
+
 
 // Get token from model, create cookie and send response
 const sendTokenResponse = (user, statusCode, res) => {
   const token = user.getSignedJwtToken();
   
   const options = {
-    expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRE * 24 * 60 * 60 * 1000),
+    expires: new Date(Date.now() + parseInt(process.env.JWT_COOKIE_EXPIRE) * 24 * 60 * 60 * 1000),
     httpOnly: true
   };
   
@@ -71,4 +71,22 @@ const sendTokenResponse = (user, statusCode, res) => {
       success: true,
       token
     });
+};
+
+exports.forgetPassword = async (req, res, next) => {
+  const { email, newPassword } = req.body;
+
+  if (!email || !newPassword) {
+    return res.status(400).json({ success: false, message: 'Please provide email and new password' });
+  }
+
+  const user = await User.findOne({ email }).select('+password'); // this is key
+  if (!user) {
+    return res.status(404).json({ success: false, message: 'User not found' });
+  }
+
+  user.password = newPassword; // let pre-save handle hashing
+  await user.save();
+
+  res.status(200).json({ success: true, message: 'Password updated successfully' });
 };

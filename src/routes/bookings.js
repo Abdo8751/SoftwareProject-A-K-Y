@@ -5,15 +5,17 @@ const {
   getBooking,
   cancelBooking
 } = require('../controllers/bookings');
-const { protect, authorize } = require('../middleware/auth');
+const { protect } = require('../middleware/auth');
 
 const router = express.Router();
 
+// ✅ Only use protect
 router.use(protect);
 
-router.post('/', authorize('user'), createBooking);
-router.get('/users/bookings', authorize('user'), getUserBookings);
-router.get('/:id', authorize('user'), getBooking);
-router.delete('/:id', authorize('user'), cancelBooking);
+// ✅ Routes
+router.post('/bookings', createBooking);
+router.get('/my-bookings', getUserBookings);
+router.get('/bookings/:id', getBooking);
+router.delete('/bookings/:id', cancelBooking);
 
 module.exports = router;

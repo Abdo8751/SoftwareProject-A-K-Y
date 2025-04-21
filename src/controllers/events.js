@@ -30,6 +30,19 @@ exports.getEvent = async (req, res, next) => {
   }
 };
 
+// @desc    Get all events (any status)
+// @route   GET /api/v1/events/all
+// @access  Private (Admin)
+exports.getAllEvents = async (req, res, next) => {
+  try {
+    const events = await Event.find();
+    res.status(200).json({ success: true, data: events });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+};
+
+
 // @desc    Create event
 // @route   POST /api/v1/events
 // @access  Private (Organizer)
@@ -73,6 +86,29 @@ exports.updateEvent = async (req, res, next) => {
   }
 };
 
+// @desc    Update event status (approve/reject)
+// @route   PUT /api/v1/events/:id/status
+// @access  Private (Admin)
+exports.updateEventStatus = async (req, res, next) => {
+  try {
+    const { status } = req.body;
+    const allowed = ['approved', 'pending', 'declined'];
+    if (!allowed.includes(status)) {
+      return res.status(400).json({ success: false, message: 'Invalid status value' });
+    }
+
+    const event = await Event.findByIdAndUpdate(req.params.id, { status }, { new: true });
+    if (!event) {
+      return res.status(404).json({ success: false, message: 'Event not found' });
+    }
+
+    res.status(200).json({ success: true, data: event });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
+};
+
+
 // @desc    Delete event
 // @route   DELETE /api/v1/events/:id
 // @access  Private (Organizer or Admin)
@@ -92,7 +128,7 @@ exports.deleteEvent = async (req, res, next) => {
       });
     }
     
-    await event.remove();
+    await event.deleteOne();
     res.status(200).json({ success: true, data: {} });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
