@@ -6,6 +6,10 @@ const path = require('path');
 // Load .env variables
 require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log('MongoDB connected successfully!'))
+  .catch(err => console.error('MongoDB connection error:', err));
+
 // Debug output
 console.log('Current environment variables:');
 console.log({
