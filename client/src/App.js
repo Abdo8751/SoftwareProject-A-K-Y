@@ -4,16 +4,16 @@ import PrivateRoute from './components/shared/PrivateRoute';
 import Navbar from './components/shared/Navbar';
 import ToastNotifications from './components/shared/ToastNotifications';
 
-// Import all pages
-import Home from './pages/Home';
+// Corrected file names
+import EventList from './pages/EventList';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import EventDetails from './pages/EventDetails';
+import EventDetails from './components/Events/Eventforms';
 import Profile from './pages/Profile';
-import MyEvents from './pages/MyEvents';
-import EventForm from './pages/EventForm';
+import Myevents from './pages/Myevents';
+import EventForm from './components/Events/Eventforms';
 import UserBookings from './pages/UserBookings';
-import AdminEvents from './pages/AdminEvents';
+import Adminevents from './pages/Adminevents';
 import AdminUsers from './pages/AdminUsers';
 
 export default function App() {
@@ -24,7 +24,7 @@ export default function App() {
         <ToastNotifications />
         <Routes>
           {/* Public Routes */}
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<EventList />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/events/:id" element={<EventDetails />} />
@@ -39,7 +39,7 @@ export default function App() {
           {/* Organizer Routes */}
           <Route path="/my-events" element={
             <PrivateRoute roles={['organizer', 'admin']}>
-              <MyEvents />
+              <Myevents />
             </PrivateRoute>
           } />
           <Route path="/events/new" element={
@@ -63,7 +63,7 @@ export default function App() {
           {/* Admin Routes */}
           <Route path="/admin/events" element={
             <PrivateRoute roles={['admin']}>
-              <AdminEvents />
+              <Adminevents />
             </PrivateRoute>
           } />
           <Route path="/admin/users" element={

@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
-import api from '../services/api';
-import EventCard from '../components/events/EventCard';
+import api from '../services/Api';
+import EventCard from '../components/Events/EventCard';
 
 export default function EventList() {
   const [events, setEvents] = useState([]);
 
   useEffect(() => {
-    api.get('/events')
+    api.get('/v1/events')
       .then(res => setEvents(res.data))
       .catch(err => console.error(err));
   }, []);

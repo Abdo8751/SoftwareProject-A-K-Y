@@ -9,7 +9,8 @@ const {
   getUserProfile,
   updateUserProfile,
   updateUserRole,
-  deleteUser
+  deleteUser, 
+  getMe
 } = require('../controllers/users');
 const { protect, authorize } = require('../middleware/auth');
 
@@ -21,6 +22,7 @@ router.get('/profile', getUserProfile);
 router.put('/profile', updateUserProfile);
 
 router.use(authorize('admin'));
+router.get('/me', protect, getMe);
 router.get('/', getUsers);
 router.get('/:id', getUser);
 router.put('/:id', updateUserRole);

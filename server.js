@@ -2,13 +2,10 @@ const express = require('express');
 const connectDB = require('./src/config/db');
 const cors = require('cors');
 const path = require('path');
+const mongoose = require('mongoose');
 
 // Load .env variables
 require('dotenv').config({ path: path.resolve(__dirname, '.env') });
-
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('MongoDB connected successfully!'))
-  .catch(err => console.error('MongoDB connection error:', err));
 
 // Debug output
 console.log('Current environment variables:');
@@ -24,21 +21,30 @@ if (!process.env.MONGO_URI) {
 }
 
 // Connect to MongoDB
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log('MongoDB connected successfully!'))
+  .catch(err => console.error('MongoDB connection error:', err));
+
 connectDB();
 
 // Init Express app
 const app = express();
 
-// Middleware
-app.use(cors());
+// ✅ Unified CORS setup
+app.use(cors({
+  origin: 'http://localhost:3000',
+  credentials: true
+}));
+
 app.use(express.json());
 
 // ✅ Route mounting
-app.use('/api/v1', require('./src/routes/auth')); // handles /register, /login, /forgetPassword
+app.use('/api/v1', require('./src/routes/auth'));        // /register, /login, /forgetPassword
 app.use('/api/v1/users', require('./src/routes/users'));
 app.use('/api/v1/events', require('./src/routes/events'));
 app.use('/api/v1', require('./src/routes/bookings'));
 
+// app.use('/api/events', eventRoutes);
 
 // Error handler
 app.use((err, req, res, next) => {

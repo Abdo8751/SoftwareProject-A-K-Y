@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import api from '../services/api';
+import api from '../services/Api';
 import { Link } from 'react-router-dom';
 
 export default function MyEvents() {
