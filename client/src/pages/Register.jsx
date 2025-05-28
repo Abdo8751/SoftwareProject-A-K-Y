@@ -1,41 +1,161 @@
-import { useState } from 'react';
-import api from '../services/Api';
-import { useNavigate } from 'react-router-dom';
+import { useState, useContext } from 'react';
+import { AuthContext } from '../context/AuthContext';
+import { useNavigate, Link } from 'react-router-dom';
+import './Register.css';
 
 export default function Register() {
-  const [form, setForm] = useState({ name: '', email: '', password: '', role: 'user' });
-  const [error, setError] = useState('');
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    role: 'user' // Default role
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [validationError, setValidationError] = useState('');
+  const { register, error } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    // Clear validation error when user starts typing
+    setValidationError('');
+  };
+
+  const validateForm = () => {
+    if (!formData.name.trim()) {
+      setValidationError('Name is required');
+      return false;
+    }
+    if (!formData.email.trim()) {
+      setValidationError('Email is required');
+      return false;
+    }
+    if (!formData.password) {
+      setValidationError('Password is required');
+      return false;
+    }
+    if (formData.password.length < 6) {
+      setValidationError('Password must be at least 6 characters');
+      return false;
+    }
+    if (formData.password !== formData.confirmPassword) {
+      setValidationError('Passwords do not match');
+      return false;
+    }
+    return true;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
+
+    setIsLoading(true);
     try {
-      await api.post('/v1/register', form);
-      navigate('/login');
+      await register({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        role: formData.role
+      });
+      navigate('/'); // Redirect to home page after successful registration
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed');
+      console.error('Registration error:', err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div>
-      <h2>Register</h2>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <form onSubmit={handleSubmit}>
-        <input type="text" name="name" placeholder="Full Name" onChange={handleChange} required />
-        <input type="email" name="email" placeholder="Email" onChange={handleChange} required />
-        <input type="password" name="password" placeholder="Password" onChange={handleChange} required />
-        <select name="role" onChange={handleChange} value={form.role}>
-          <option value="user">User</option>
-          <option value="organizer">Organizer</option>
-          <option value="admin">Admin</option>
-        </select>
-        <button type="submit">Register</button>
-      </form>
+    <div className="register-container">
+      <div className="register-box">
+        <h2>Create Account</h2>
+        <form onSubmit={handleSubmit}>
+          {(error || validationError) && (
+            <div className="error-message">
+              {validationError || error}
+            </div>
+          )}
+          
+          <div className="form-group">
+            <label htmlFor="name">Full Name</label>
+            <input
+              id="name"
+              name="name"
+              type="text"
+              value={formData.name}
+              onChange={handleChange}
+              placeholder="Enter your full name"
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="email">Email</label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="Enter your email"
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="password">Password</label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="Create a password"
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="confirmPassword">Confirm Password</label>
+            <input
+              id="confirmPassword"
+              name="confirmPassword"
+              type="password"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              placeholder="Confirm your password"
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="role">Account Type</label>
+            <select
+              id="role"
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
+              required
+            >
+              <option value="user">User</option>
+              <option value="organizer">Event Organizer</option>
+            </select>
+          </div>
+
+          <button type="submit" disabled={isLoading}>
+            {isLoading ? 'Creating Account...' : 'Register'}
+          </button>
+
+          <div className="login-link">
+            Already have an account? <Link to="/login">Login here</Link>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
