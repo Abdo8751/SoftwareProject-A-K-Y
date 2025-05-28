@@ -1,21 +1,27 @@
 const express = require('express');
 const {
-  createBooking,
-  getUserBookings,
+  getBookings,
   getBooking,
-  cancelBooking
+  createBooking,
+  updateBooking,
+  deleteBooking
 } = require('../controllers/bookings');
-const { protect } = require('../middleware/auth');
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
-// ✅ Only use protect
+const { protect, authorize } = require('../middleware/auth');
+
+// All routes require authentication
 router.use(protect);
 
-// ✅ Routes
-router.post('/bookings', createBooking);
-router.get('/my-bookings', getUserBookings);
-router.get('/bookings/:id', getBooking);
-router.delete('/bookings/:id', cancelBooking);
+// Routes
+router.route('/')
+  .get(getBookings)
+  .post(createBooking);
+
+router.route('/:id')
+  .get(getBooking)
+  .put(authorize('admin'), updateBooking)
+  .delete(deleteBooking);
 
 module.exports = router;

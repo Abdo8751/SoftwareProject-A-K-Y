@@ -11,7 +11,7 @@ const BookingSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
-  tickets: {
+  ticketQuantity: {
     type: Number,
     required: true
   },

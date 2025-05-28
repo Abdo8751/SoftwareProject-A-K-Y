@@ -17,7 +17,7 @@ const BookingHistory = () => {
       const response = await axios.get('/api/v1/bookings', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setBookings(response.data);
+      setBookings(response.data.data || []);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to fetch bookings');
     } finally {
@@ -28,13 +28,9 @@ const BookingHistory = () => {
   const handleCancelBooking = async (bookingId) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.put(
-        `/api/v1/bookings/${bookingId}/cancel`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
+      await axios.delete(`/api/v1/bookings/${bookingId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       fetchBookings();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to cancel booking');
@@ -90,28 +86,28 @@ const BookingHistory = () => {
                       {booking.event.title}
                     </div>
                     <div className="text-sm text-gray-500">
-                      {booking.event.location}
+                      {booking.event.venue}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {format(new Date(booking.event.date), 'PPP')}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {booking.tickets}
+                    {booking.ticketQuantity}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     ${booking.totalPrice}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                      ${booking.isCancelled 
+                      ${booking.status === 'cancelled' 
                         ? 'bg-red-100 text-red-800'
                         : new Date(booking.event.date) < new Date()
                           ? 'bg-gray-100 text-gray-800'
                           : 'bg-green-100 text-green-800'
                       }`}
                     >
-                      {booking.isCancelled 
+                      {booking.status === 'cancelled'
                         ? 'Cancelled'
                         : new Date(booking.event.date) < new Date()
                           ? 'Past Event'
@@ -119,8 +115,8 @@ const BookingHistory = () => {
                       }
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    {!booking.isCancelled && new Date(booking.event.date) > new Date() && (
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {booking.status !== 'cancelled' && new Date(booking.event.date) > new Date() && (
                       <button
                         onClick={() => handleCancelBooking(booking._id)}
                         className="text-red-600 hover:text-red-900"

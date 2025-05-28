@@ -41,13 +41,23 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await axios.post('/api/v1/login', { email, password });
+      const response = await axios.post('/api/v1/users/login', { email, password });
+      
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Login failed');
+      }
+
       const { token, user: userData } = response.data;
+      if (!token) {
+        throw new Error('No token received from server');
+      }
+
       localStorage.setItem('token', token);
-      setUser(userData);
-      return userData;
+      setUser(userData || null);
+      return { token, user: userData };
     } catch (err) {
-      throw new Error(err.response?.data?.message || 'Login failed');
+      console.error('Login error:', err);
+      throw new Error(err.response?.data?.message || 'Login failed - please check your credentials');
     }
   };
 

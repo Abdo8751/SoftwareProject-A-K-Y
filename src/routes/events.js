@@ -22,7 +22,7 @@ router.get('/:id', getEvent); // ⬅️ Now safe
 // ✅ Protected routes
 router.use(protect);
 
-router.post('/', authorize('organizer'), createEvent);
+router.post('/', authorize('organizer', 'admin'), createEvent);
 router.put('/:id', authorize('organizer', 'admin'), updateEvent);
 router.delete('/:id', authorize('organizer', 'admin'), deleteEvent);
 

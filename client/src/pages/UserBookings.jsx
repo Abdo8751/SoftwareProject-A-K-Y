@@ -30,8 +30,8 @@ export default function UserBookings() {
             <div key={booking._id} className="booking-card">
               <h3>{booking.event.title}</h3>
               <p>Date: {new Date(booking.event.date).toLocaleString()}</p>
-              <p>Tickets: {booking.tickets}</p>
-              <p>Total: ${booking.total.toFixed(2)}</p>
+              <p>Tickets: {booking.ticketQuantity}</p>
+              <p>Total: ${booking.totalPrice.toFixed(2)}</p>
               <p>Status: {booking.status}</p>
               {booking.status === 'confirmed' && (
                 <button onClick={() => handleCancel(booking._id)}>

@@ -53,8 +53,8 @@ const EventList = () => {
     try {
       const token = localStorage.getItem('token');
       await axios.post(`/api/v1/bookings`, {
-        eventId,
-        tickets: 1 // Default to 1 ticket for simplicity
+        event: eventId,
+        ticketQuantity: 1 // Default to 1 ticket for simplicity
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });

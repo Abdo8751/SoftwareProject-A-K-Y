@@ -1,11 +1,15 @@
 const express = require('express');
+const dotenv = require('dotenv');
+const morgan = require('morgan');
+const colors = require('colors');
 const connectDB = require('./src/config/db');
+const errorHandler = require('./src/middleware/error');
+const securityMiddleware = require('./src/middleware/security');
 const cors = require('cors');
 const path = require('path');
-const mongoose = require('mongoose');
 
-// Load .env variables
-require('dotenv').config({ path: path.resolve(__dirname, '.env') });
+// Load env vars
+dotenv.config();
 
 // Debug output
 console.log('Current environment variables:');
@@ -20,46 +24,60 @@ if (!process.env.MONGO_URI) {
   process.exit(1);
 }
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('MongoDB connected successfully!'))
-  .catch(err => console.error('MongoDB connection error:', err));
-
+// Connect to database
 connectDB();
 
-// Init Express app
 const app = express();
 
-// ✅ Unified CORS setup
+// Body parser
+app.use(express.json());
+
+// Dev logging middleware
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
+
+// Apply security middleware
+app.use(securityMiddleware);
+
+// Enable CORS
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: process.env.NODE_ENV === 'production' 
+    ? process.env.FRONTEND_URL 
+    : 'http://localhost:3000',
   credentials: true
 }));
 
-app.use(express.json());
-
-// ✅ Route mounting
-app.use('/api/v1', require('./src/routes/auth'));        // /register, /login, /forgetPassword
+// Mount routers
+app.use('/api/v1/auth', require('./src/routes/auth'));
 app.use('/api/v1/users', require('./src/routes/users'));
 app.use('/api/v1/events', require('./src/routes/events'));
-app.use('/api/v1', require('./src/routes/bookings'));
+app.use('/api/v1/bookings', require('./src/routes/bookings'));
 
-// app.use('/api/events', eventRoutes);
+// Serve static assets in production
+if (process.env.NODE_ENV === 'production') {
+  // Set static folder
+  app.use(express.static('client/build'));
+
+  app.get('*', (req, res) => {
+    res.sendFile(path.resolve(__dirname, 'client', 'build', 'index.html'));
+  });
+}
 
 // Error handler
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ success: false, message: 'Server Error' });
-});
+app.use(errorHandler);
 
-// Start server
 const PORT = process.env.PORT || 5000;
+
 const server = app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`.yellow.bold);
 });
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err, promise) => {
-  console.log(`Error: ${err.message}`);
+  console.log(`Error: ${err.message}`.red);
+  // Close server & exit process
   server.close(() => process.exit(1));
 });
+
+module.exports = app;
