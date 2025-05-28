@@ -41,29 +41,37 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
+      console.log('Attempting login with:', { email });
       const response = await axios.post('/api/v1/users/login', { email, password });
+      console.log('Login response:', response.data);
       
       if (!response.data.success) {
         throw new Error(response.data.message || 'Login failed');
       }
 
       const { token, user: userData } = response.data;
-      if (!token) {
-        throw new Error('No token received from server');
+      if (!token || !userData) {
+        throw new Error('Invalid response from server');
       }
 
       localStorage.setItem('token', token);
-      setUser(userData || null);
+      setUser(userData);
       return { token, user: userData };
     } catch (err) {
-      console.error('Login error:', err);
-      throw new Error(err.response?.data?.message || 'Login failed - please check your credentials');
+      console.error('Login error details:', err);
+      if (err.response?.data?.message) {
+        throw new Error(err.response.data.message);
+      } else if (err.message) {
+        throw new Error(err.message);
+      } else {
+        throw new Error('Login failed - please check your credentials');
+      }
     }
   };
 
   const register = async (userData) => {
     try {
-      const response = await axios.post('/api/v1/register', userData);
+      const response = await axios.post('/api/v1/users/register', userData);
       const { token, user: newUser } = response.data;
       localStorage.setItem('token', token);
       setUser(newUser);
@@ -93,7 +101,7 @@ export const AuthProvider = ({ children }) => {
 
   const forgotPassword = async (email) => {
     try {
-      await axios.post('/api/v1/forgot-password', { email });
+      await axios.post('/api/v1/users/forgot-password', { email });
     } catch (err) {
       throw new Error(err.response?.data?.message || 'Password reset request failed');
     }

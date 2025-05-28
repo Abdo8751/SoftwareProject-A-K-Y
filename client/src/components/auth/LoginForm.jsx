@@ -9,16 +9,18 @@ export default function LoginForm() {
   const [mfaToken, setMfaToken] = useState('');
   const [error, setError] = useState('');
   const [showMfa, setShowMfa] = useState(false);
+  const [loading, setLoading] = useState(false);
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     setError('');
 
     try {
       if (!showMfa) {
-        const response = await axios.post('/api/v1/auth/login', { email, password });
+        const response = await axios.post('/api/v1/users/login', { email, password });
         
         if (response.data.requiresMfa) {
           setShowMfa(true);
@@ -28,7 +30,7 @@ export default function LoginForm() {
         await login(email, password);
         navigate('/');
       } else {
-        const response = await axios.post('/api/v1/auth/mfa/validate', {
+        const response = await axios.post('/api/v1/users/mfa/validate', {
           email,
           token: mfaToken
         });
@@ -37,87 +39,84 @@ export default function LoginForm() {
         navigate('/');
       }
     } catch (err) {
+      console.error('Login error:', err);
       setError(err.response?.data?.message || 'Invalid credentials');
+      // Clear error after 5 seconds
+      setTimeout(() => setError(''), 5000);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-xl">
-      <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
-      
+    <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
           {error}
         </div>
       )}
-
-      <form onSubmit={handleSubmit}>
-        {!showMfa ? (
-          <>
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2">
-                Email
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                required
-              />
-            </div>
-            <div className="mb-6">
-              <label className="block text-gray-700 text-sm font-bold mb-2">
-                Password
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                required
-              />
-            </div>
-          </>
-        ) : (
-          <div className="mb-6">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              Enter the 6-digit code from your authenticator app:
+      
+      {!showMfa ? (
+        <>
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              Email
             </label>
             <input
-              type="text"
-              value={mfaToken}
-              onChange={(e) => setMfaToken(e.target.value)}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              type="email"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
-              pattern="[0-9]{6}"
-              maxLength="6"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
             />
           </div>
-        )}
-
-        <div className="flex items-center justify-between mb-6">
-          <button
-            type="submit"
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-          >
-            {showMfa ? 'Verify' : 'Login'}
-          </button>
-          <Link
-            to="/forgot-password"
-            className="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800"
-          >
-            Forgot Password?
-          </Link>
+          
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              Password
+            </label>
+            <input
+              type="password"
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            />
+          </div>
+        </>
+      ) : (
+        <div>
+          <label htmlFor="mfaToken" className="block text-sm font-medium text-gray-700">
+            MFA Code
+          </label>
+          <input
+            type="text"
+            id="mfaToken"
+            value={mfaToken}
+            onChange={(e) => setMfaToken(e.target.value)}
+            required
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          />
         </div>
-      </form>
+      )}
 
-      <p className="text-center text-gray-600 text-sm">
-        Don't have an account?{' '}
-        <Link to="/register" className="text-blue-500 hover:text-blue-800">
-          Register
+      <button
+        type="submit"
+        disabled={loading}
+        className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
+          loading ? 'opacity-50 cursor-not-allowed' : ''
+        }`}
+      >
+        {loading ? 'Loading...' : (showMfa ? 'Verify MFA' : 'Sign In')}
+      </button>
+
+      <div className="text-sm text-center">
+        <Link to="/forgot-password" className="text-indigo-600 hover:text-indigo-500">
+          Forgot your password?
         </Link>
-      </p>
-    </div>
+      </div>
+    </form>
   );
 }

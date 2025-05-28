@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client'; // Updated import
+import './config/axios'; // Import axios config
 import App from './App';
 import './index.css';
 import { AuthProvider } from './context/AuthContext';

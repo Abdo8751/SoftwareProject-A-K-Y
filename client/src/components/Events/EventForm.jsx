@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -16,13 +16,7 @@ const EventForm = () => {
     totalTickets: ''
   });
 
-  useEffect(() => {
-    if (id) {
-      fetchEvent();
-    }
-  }, [id]);
-
-  const fetchEvent = async () => {
+  const fetchEvent = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(`/api/v1/events/${id}`, {
@@ -40,7 +34,13 @@ const EventForm = () => {
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to fetch event');
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    if (id) {
+      fetchEvent();
+    }
+  }, [id, fetchEvent]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

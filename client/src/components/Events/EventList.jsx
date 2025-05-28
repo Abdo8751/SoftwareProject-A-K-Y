@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { format } from 'date-fns';
 
@@ -14,11 +14,7 @@ const EventList = () => {
     location: ''
   });
 
-  useEffect(() => {
-    fetchEvents();
-  }, []);
-
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get('/api/v1/events', {
@@ -37,7 +33,11 @@ const EventList = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters]);
+
+  useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents]);
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
